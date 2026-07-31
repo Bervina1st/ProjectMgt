@@ -339,6 +339,7 @@ export default function Home() {
               <div className="tabs" style={{ marginTop: 16 }}>
                 <button className={`tab ${audience === "executive" ? "active" : ""}`} onClick={() => setAudience("executive")}>Executive</button>
                 <button className={`tab ${audience === "engineering" ? "active" : ""}`} onClick={() => setAudience("engineering")}>Engineering</button>
+                <button className={`tab ${audience === "pmo" ? "active" : ""}`} onClick={() => setAudience("pmo")} title="For QA, BA & PMs">PMO</button>
               </div>
 
               <textarea

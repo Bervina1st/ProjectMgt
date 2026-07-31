@@ -11,7 +11,7 @@ export type RiskFlag = {
   reason: string;
 };
 
-export type Audience = "executive" | "engineering";
+export type Audience = "executive" | "engineering" | "pmo";
 
 export const STATUS_LABELS: Record<ItemStatus, string> = {
   done: "Done",

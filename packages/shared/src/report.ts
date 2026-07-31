@@ -25,6 +25,18 @@ function cap(s: string): string {
   return s.length ? s[0].toUpperCase() + s.slice(1) : s;
 }
 
+function titleOf(i: WorkItem): string {
+  return i.title.trim() || "(untitled item)";
+}
+
+/** A risk line with source tag and the responsible owner (for the PMO view). */
+function riskLine(r: RiskFlag, items: WorkItem[]): string {
+  const mark = r.severity === "high" ? "🔴" : "🟡";
+  const owner = items.find((i) => i.id === r.itemId)?.owner?.trim();
+  const ownerTxt = owner ? ` _(owner ${owner})_` : "";
+  return `- ${mark} **${r.itemTitle}** \`${srcLabel(r.source)}\` — ${r.reason}${ownerTxt}`;
+}
+
 function sourcesLine(items: WorkItem[]): string[] {
   const labels = distinctSourceLabels(items.map((i) => i.source));
   return labels.length ? [labels.join(" · ")] : [];
@@ -43,6 +55,7 @@ export function generateReports(project: Project): Record<Audience, string> {
   return {
     executive: buildExecutive(project, counts, risks, meta),
     engineering: buildEngineering(project, counts, risks, meta),
+    pmo: buildPmo(project, counts, risks, meta),
   };
 }
 
@@ -110,6 +123,71 @@ function buildEngineering(project: Project, counts: Counts, risks: RiskFlag[], m
   addSection(lines, "⛔ Blocked", itemsByStatus(project.items, "blocked"));
   addSection(lines, "🗒️ Not started", itemsByStatus(project.items, "not_started"));
   addSection(lines, "✅ Completed", itemsByStatus(project.items, "done"));
+
+  return lines.join("\n").trimEnd();
+}
+
+/**
+ * PMO view — for QA, BA and PMs. Leads with what needs immediate attention,
+ * then role-specific cues, then the full status breakdown.
+ */
+function buildPmo(project: Project, counts: Counts, risks: RiskFlag[], meta: { label: string; badge: string }): string {
+  const name = project.name.trim() || "Project";
+  const period = project.periodLabel.trim();
+  const sources = sourcesLine(project.items);
+
+  const highs = risks.filter((r) => r.severity === "high");
+  const meds = risks.filter((r) => r.severity === "medium");
+  const overdue = risks.filter((r) => r.ruleId === "overdue").length;
+
+  const done = itemsByStatus(project.items, "done");
+  const inProgress = itemsByStatus(project.items, "in_progress");
+  const notStarted = itemsByStatus(project.items, "not_started");
+  const blocked = itemsByStatus(project.items, "blocked");
+
+  const lines: string[] = [];
+  lines.push(`# ${name} — PMO Status Update`);
+  if (period) lines.push(`_${period}_`);
+  lines.push("");
+  lines.push(
+    `**Overall:** ${meta.badge} ${meta.label}  ·  ${counts.done}/${counts.total} done · ${counts.blocked} blocked · ${risks.length} at risk`,
+  );
+  if (sources.length) lines.push(`**Sources:** ${sources[0]}`);
+  lines.push("");
+
+  // What must be acted on right now.
+  lines.push(`## 🚨 Needs attention now (${highs.length})`);
+  if (highs.length === 0) lines.push(`- ✅ Nothing critical — no blocked or overdue items.`);
+  else for (const r of highs) lines.push(riskLine(r, project.items));
+  lines.push("");
+
+  // Keep an eye on these.
+  if (meds.length > 0) {
+    lines.push(`## ⚠️ Watch list (${meds.length})`);
+    for (const r of meds) lines.push(riskLine(r, project.items));
+    lines.push("");
+  }
+
+  // Role-specific cues for QA / BA / PM.
+  lines.push(`## 👥 For the team`);
+  lines.push(
+    `- **QA:** ${done.length} item${done.length === 1 ? "" : "s"} completed and ready to verify${
+      done.length ? ` — ${done.map(titleOf).join(", ")}` : ""
+    }.`,
+  );
+  lines.push(
+    `- **BA:** ${notStarted.length} not started — confirm scope/requirements${
+      notStarted.length ? ` for ${notStarted.map(titleOf).join(", ")}` : ""
+    }.`,
+  );
+  lines.push(`- **PM:** ${counts.blocked} blocked, ${overdue} overdue — escalate and unblock as needed.`);
+  lines.push("");
+
+  // Full status breakdown, most-urgent first.
+  addSection(lines, "⛔ Blocked", blocked);
+  addSection(lines, "🚧 In progress", inProgress);
+  addSection(lines, "🗒️ Not started", notStarted);
+  addSection(lines, "✅ Completed", done);
 
   return lines.join("\n").trimEnd();
 }

@@ -30,7 +30,7 @@ export function detectRisks(items: WorkItem[]): RiskFlag[] {
         source: item.source,
         ruleId: "blocked",
         severity: "high",
-        reason: `Marked blocked${item.owner ? ` — owner ${item.owner}` : ""}.`,
+        reason: `Marked blocked.`,
       });
     }
 
