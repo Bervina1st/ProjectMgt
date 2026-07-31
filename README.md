@@ -1,6 +1,6 @@
 # PM Status Autopilot — Monorepo
 
-[![CI](https://github.com/bervina1st/ProjectMgt/actions/workflows/ci.yml/badge.svg)](https://github.com/bervina1st/ProjectMgt/actions/workflows/ci.yml)
+[![CI](https://github.com/Bervina1st/ProjectMgt/actions/workflows/ci.yml/badge.svg)](https://github.com/Bervina1st/ProjectMgt/actions/workflows/ci.yml)
 
 Turborepo monorepo for PM Status Autopilot. Full context lives in [`research/`](./research)
 and [`.claude/CLAUDE.md`](./.claude/CLAUDE.md).
