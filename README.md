@@ -1,5 +1,10 @@
 # PM Status Autopilot — Monorepo
 
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+
+<!-- Replace OWNER/REPO above with your GitHub org/repo (e.g. bervina1st/pm-status-autopilot)
+     once you create the remote. Until then the badge shows "not found". -->
+
 Turborepo monorepo for PM Status Autopilot. Full context lives in [`research/`](./research)
 and [`.claude/CLAUDE.md`](./.claude/CLAUDE.md).
 
