@@ -6,7 +6,7 @@ Turborepo monorepo for PM Status Autopilot. Full context lives in [`research/`](
 and [`.claude/CLAUDE.md`](./.claude/CLAUDE.md).
 
 ## Current state: frontend MVP
-The shippable piece today is **`apps/web` — Status Report Studio**: a functional, database-free
+The shippable piece today is **`apps/web` — Statuscope**: a functional, database-free
 Next.js frontend where a PM enters work items and gets an audience-ready status report with the
 risks already flagged (deterministic), editable and exportable. The heavier pieces of the planned
 architecture are reserved as empty workspaces and deferred per the roadmap.

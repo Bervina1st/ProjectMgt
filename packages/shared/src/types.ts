@@ -22,14 +22,14 @@ export const STATUS_LABELS: Record<ItemStatus, string> = {
 
 /** Brand-ish metadata for each data source. Colors are tuned for a dark UI. */
 export const SOURCE_META: Record<SourceId, { label: string; color: string; short: string }> = {
-  jira: { label: "Jira", color: "#4c9aff", short: "JIRA" },
-  azure_devops: { label: "Azure DevOps", color: "#3b9be8", short: "ADO" },
-  monday: { label: "Monday.com", color: "#ff5a7e", short: "MON" },
-  github: { label: "GitHub", color: "#b6bfc9", short: "GH" },
-  linear: { label: "Linear", color: "#8b7bff", short: "LIN" },
-  asana: { label: "Asana", color: "#f4796b", short: "ASA" },
-  trello: { label: "Trello", color: "#4ba3e3", short: "TRL" },
-  manual: { label: "Manual", color: "#9aa6c4", short: "MAN" },
+  jira: { label: "Jira", color: "#2563eb", short: "JIRA" },
+  azure_devops: { label: "Azure DevOps", color: "#0b74c4", short: "ADO" },
+  monday: { label: "Monday.com", color: "#e11d48", short: "MON" },
+  github: { label: "GitHub", color: "#57606a", short: "GH" },
+  linear: { label: "Linear", color: "#6d5ae0", short: "LIN" },
+  asana: { label: "Asana", color: "#df5a4d", short: "ASA" },
+  trello: { label: "Trello", color: "#1f7fc4", short: "TRL" },
+  manual: { label: "Manual", color: "#6b7280", short: "MAN" },
 };
 
 /** Distinct source labels present in a set of items, in first-seen order. */

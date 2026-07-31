@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Status Report Studio — PM Status Autopilot",
-  description: "Turn your project's work items into a clear, audience-ready status report in minutes.",
+  title: "Statuscope — one lens on every tool",
+  description: "Pull work from Jira, Azure DevOps, Monday.com & more into one clear, audience-ready status report — with risks flagged automatically.",
   authors: [{ name: "Christina Bervin" }],
   creator: "Christina Bervin",
 };

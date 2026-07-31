@@ -190,8 +190,45 @@ export default function Home() {
   return (
     <div className="wrap">
       <header className="app">
-        <h1>Status Report Studio</h1>
-        <p>Pull work from Jira, Azure DevOps, Monday.com &amp; more into one clear, audience-ready status report — with risks flagged automatically.</p>
+        <div className="brand">
+          <span className="logo">
+            <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="logoG" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#4f6bed" />
+                  <stop offset="1" stopColor="#7c5cff" />
+                </linearGradient>
+              </defs>
+              <rect x="1" y="1" width="44" height="44" rx="12" fill="url(#logoG)" />
+              <circle cx="23" cy="23" r="11" fill="none" stroke="#fff" strokeWidth="2.4" opacity="0.9" />
+              <circle cx="23" cy="23" r="4.4" fill="#fff" />
+              <path d="M23 6v4M23 36v4M6 23h4M36 23h4" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" opacity="0.75" />
+            </svg>
+          </span>
+          <div>
+            <h1>Statuscope</h1>
+            <p>Pull work from Jira, Azure DevOps, Monday.com &amp; more into one clear, audience-ready status report — with risks flagged automatically.</p>
+          </div>
+        </div>
+        <div className="hero-art-wrap">
+          <svg className="hero-art" viewBox="0 0 260 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Work from many tools flowing into one status report">
+            <path d="M42 30 C 100 30 112 80 168 80" stroke="#c7d3ec" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M42 80 C 92 80 118 80 168 80" stroke="#c7d3ec" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M42 130 C 100 130 112 80 168 80" stroke="#c7d3ec" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="28" cy="30" r="14" fill="#2563eb" />
+            <circle cx="28" cy="80" r="14" fill="#0b74c4" />
+            <circle cx="28" cy="130" r="14" fill="#e11d48" />
+            <rect x="168" y="20" width="82" height="120" rx="12" fill="#ffffff" stroke="#dbe2ef" strokeWidth="2" />
+            <rect x="181" y="36" width="42" height="7" rx="3.5" fill="#4f6bed" />
+            <rect x="181" y="54" width="56" height="5" rx="2.5" fill="#e6ebf5" />
+            <rect x="181" y="66" width="48" height="5" rx="2.5" fill="#e6ebf5" />
+            <rect x="181" y="86" width="52" height="5" rx="2.5" fill="#fca5a5" />
+            <rect x="181" y="98" width="40" height="5" rx="2.5" fill="#fcd34d" />
+            <rect x="181" y="116" width="56" height="5" rx="2.5" fill="#e6ebf5" />
+            <circle cx="238" cy="30" r="10" fill="#16a34a" />
+            <path d="M233.5 30l3 3 5-6" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
       </header>
 
       {/* Connected sources + quick connectors */}
@@ -358,7 +395,19 @@ export default function Home() {
             </>
           )}
 
-          {!reports && <div className="hint">Fill in your items on the left, then hit &ldquo;Generate report.&rdquo;</div>}
+          {!reports && (
+            <div className="empty">
+              <svg className="empty-art" viewBox="0 0 130 104" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="33" y="12" width="64" height="82" rx="10" fill="#ffffff" stroke="#dbe2ef" strokeWidth="2" />
+                <rect x="45" y="28" width="32" height="6" rx="3" fill="#4f6bed" />
+                <rect x="45" y="44" width="40" height="4.5" rx="2.25" fill="#e6ebf5" />
+                <rect x="45" y="55" width="34" height="4.5" rx="2.25" fill="#e6ebf5" />
+                <rect x="45" y="70" width="30" height="4.5" rx="2.25" fill="#fca5a5" />
+                <path d="M100 20l2.2 6.4 6.4 2.2-6.4 2.2L100 37.2l-2.2-6.4L91.4 28.6l6.4-2.2z" fill="#f5b301" />
+              </svg>
+              <div>Fill in your items on the left, then hit &ldquo;✨ Generate report.&rdquo;</div>
+            </div>
+          )}
         </section>
       </div>
 
