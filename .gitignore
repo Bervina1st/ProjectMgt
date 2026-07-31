@@ -1,24 +1,44 @@
-# dependencies
+# ---- dependencies ----
 node_modules
 .pnpm-store
+.yarn
 
-# build outputs
+# ---- build outputs ----
 .next
 out
+build
 dist
 .turbo
 
-# env / secrets — never commit
+# ---- env / secrets — NEVER commit ----
 .env
-.env*.local
+.env.*
+!.env.example
+*.pem
+*.key
 
-# next
+# ---- next.js ----
 next-env.d.ts
 
-# netlify
-.netlify
+# ---- test / coverage ----
+coverage
+.nyc_output
 
-# misc
-.DS_Store
-*.pem
+# ---- hosting ----
+.netlify
+.vercel
+
+# ---- logs ----
+*.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- editors / OS ----
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.swp
