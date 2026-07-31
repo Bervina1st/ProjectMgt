@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SOURCE_META, SourceId } from "@pmstatus/shared";
 import SiteNav from "./components/SiteNav";
+import TrackedLink from "./components/TrackedLink";
 
 const CONNECTORS: { id: SourceId; blurb: string }[] = [
   { id: "jira", blurb: "Issues, sprints, statuses and due dates." },
@@ -58,6 +59,21 @@ const PLANS = [
   },
 ];
 
+const TESTIMONIALS = [
+  { quote: "I used to lose half a Friday stitching together a status update. Now it's ten minutes and it's actually accurate.", name: "Dana", role: "Delivery Lead" },
+  { quote: "The PMO view tells me exactly who to chase before standup. That alone paid for it.", name: "Marcus", role: "Head of PMO" },
+  { quote: "One report for execs, one for my engineers, from the same data — no more copy, paste, reword.", name: "Priya", role: "Engineering Manager" },
+];
+
+const FAQS = [
+  { q: "Which tools does Statuscope connect to?", a: "Jira, Azure DevOps, Monday.com, GitHub, Linear, Asana and Trello today, with more on the roadmap. You can also add items manually." },
+  { q: "Do I need to install anything?", a: "No — Statuscope runs in your browser. In this preview, the connectors import sample work items so you can see how cross-tool aggregation feels." },
+  { q: "How does it decide what's 'at risk'?", a: "Deterministically: items that are blocked, overdue, or due soon are flagged automatically, each with the concrete reason behind it — never an AI guess." },
+  { q: "Can I edit the report before it goes out?", a: "Always. Statuscope drafts the report; you review and edit every word before sending. It removes the busywork, not your judgment." },
+  { q: "What audiences can I report to?", a: "Three variants from one source of truth: Executive (a crisp summary), Engineering (full detail), and PMO (for QA, BA and PMs, with owner-grouped accountability)." },
+  { q: "Is there a free plan?", a: "Yes — Free covers one project and two connectors with Executive and Engineering reports. Upgrade for unlimited projects, all connectors and the PMO view." },
+];
+
 export default function Landing() {
   return (
     <>
@@ -74,8 +90,8 @@ export default function Landing() {
               with the risks that matter flagged automatically and traced to who owns them.
             </p>
             <div className="hero-cta">
-              <Link href="/signup" className="btn btn-primary btn-lg">Get started free →</Link>
-              <Link href="/studio" className="btn btn-ghost btn-lg">Launch live demo</Link>
+              <TrackedLink href="/signup" event="cta_get_started" props={{ location: "hero" }} className="btn btn-primary btn-lg">Get started free →</TrackedLink>
+              <TrackedLink href="/studio" event="launch_demo" props={{ location: "hero" }} className="btn btn-ghost btn-lg">Launch live demo</TrackedLink>
             </div>
             <div className="conn-badges">
               {CONNECTORS.map((c) => (
@@ -169,8 +185,30 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ---------- TESTIMONIALS ---------- */}
+      <section className="section alt">
+        <div className="container">
+          <div className="section-head">
+            <span className="eyebrow">Loved by delivery teams</span>
+            <h2>Less status busywork, more actual delivery.</h2>
+            <p className="section-sub">Sample testimonials — swap in your own before launch.</p>
+          </div>
+          <div className="testi-grid">
+            {TESTIMONIALS.map((t) => (
+              <figure key={t.name} className="testi-card">
+                <blockquote className="quote">{t.quote}</blockquote>
+                <figcaption className="testi-author">
+                  <span className="testi-avatar" aria-hidden="true">{t.name.charAt(0)}</span>
+                  <span className="testi-who"><strong>{t.name}</strong><span>{t.role}</span></span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ---------- PRICING ---------- */}
-      <section id="pricing" className="section alt">
+      <section id="pricing" className="section">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Pricing</span>
@@ -194,14 +232,32 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ---------- FAQ ---------- */}
+      <section id="faq" className="section alt">
+        <div className="container">
+          <div className="section-head">
+            <span className="eyebrow">FAQ</span>
+            <h2>Questions, answered.</h2>
+          </div>
+          <div className="faq-list">
+            {FAQS.map((f) => (
+              <details key={f.q} className="faq-item">
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ---------- CTA BAND ---------- */}
       <section className="cta-band">
         <div className="container cta-inner">
           <h2>Ready to ditch the status scramble?</h2>
           <p>Turn scattered work into a report you&rsquo;re proud to send — in minutes.</p>
           <div className="hero-cta">
-            <Link href="/signup" className="btn btn-primary btn-lg">Get started free →</Link>
-            <Link href="/studio" className="btn btn-ghost btn-lg">Try the demo</Link>
+            <TrackedLink href="/signup" event="cta_get_started" props={{ location: "cta_band" }} className="btn btn-primary btn-lg">Get started free →</TrackedLink>
+            <TrackedLink href="/studio" event="launch_demo" props={{ location: "cta_band" }} className="btn btn-ghost btn-lg">Try the demo</TrackedLink>
           </div>
         </div>
       </section>
