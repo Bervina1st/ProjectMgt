@@ -122,16 +122,26 @@ footer.credit {
 }
 footer.credit strong { color: var(--text); font-weight: 600; }
 
-/* ---- connected-sources strip ---- */
-.sources-strip {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+/* ---- connected-sources card + quick connectors ---- */
+.sources-card {
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 12px 16px; margin-bottom: 20px;
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px;
 }
-.sources-strip .lead {
+.sources-row, .connect-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.connect-row { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.lead {
   font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-right: 4px;
 }
+.connect-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+  font-size: 13px; padding: 8px 12px; border-radius: 8px; cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.connect-btn:hover { border-color: var(--accent); }
+.connect-btn.on { font-weight: 600; }
+.connect-btn .dot { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
 
 /* ---- source badge (brand-colored pill; color set inline) ---- */
 .src-badge {

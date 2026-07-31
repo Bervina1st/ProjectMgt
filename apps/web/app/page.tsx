@@ -42,6 +42,38 @@ const SEED: Project = {
 const STATUS_OPTIONS: ItemStatus[] = ["not_started", "in_progress", "blocked", "done"];
 const SOURCE_OPTIONS: SourceId[] = ["jira", "azure_devops", "monday", "github", "linear", "asana", "trello", "manual"];
 
+// Tools you can "connect" (everything except the manual catch-all).
+const CONNECTABLE: SourceId[] = ["jira", "azure_devops", "monday", "github", "linear", "asana", "trello"];
+
+type SampleItem = { title: string; status: ItemStatus; owner?: string; due?: string; note?: string };
+
+// Demo data pulled in when a connector is clicked — stands in for a real API sync.
+const SAMPLE_ITEMS: Record<SourceId, SampleItem[]> = {
+  jira: [
+    { title: "Checkout API v2", status: "in_progress", owner: "Dana", due: "2026-08-03" },
+    { title: "Refund webhook retries", status: "in_progress", owner: "Dana", due: "2026-08-05" },
+  ],
+  azure_devops: [
+    { title: "Migrate legacy tokens", status: "blocked", owner: "Priya", due: "2026-07-29", note: "waiting on security review" },
+    { title: "Release pipeline hardening", status: "in_progress", owner: "Omar", due: "2026-08-07" },
+  ],
+  monday: [
+    { title: "Fraud rules refresh", status: "done", owner: "Sam", due: "2026-07-25" },
+    { title: "Vendor risk review", status: "not_started", owner: "Sam", due: "2026-08-10" },
+  ],
+  github: [
+    { title: "Load testing", status: "not_started", owner: "Lee", due: "2026-08-01" },
+    { title: "SDK v3 release", status: "in_progress", owner: "Lee", due: "2026-08-06" },
+  ],
+  linear: [
+    { title: "Onboarding redesign", status: "in_progress", owner: "Mia", due: "2026-08-04" },
+    { title: "Bug triage sweep", status: "not_started", owner: "Mia" },
+  ],
+  asana: [{ title: "Q3 site refresh", status: "in_progress", owner: "Jules", due: "2026-08-12" }],
+  trello: [{ title: "Support macros cleanup", status: "not_started", owner: "Kai" }],
+  manual: [],
+};
+
 export default function Home() {
   const [project, setProject] = useState<Project>(SEED);
   const [audience, setAudience] = useState<Audience>("executive");
@@ -88,6 +120,9 @@ export default function Home() {
     return order.map((label) => ({ label, ...byLabel.get(label)! }));
   }, [project.items]);
 
+  // A tool is "connected" if any item currently comes from it.
+  const connectedSet = useMemo(() => new Set<SourceId>(project.items.map((i) => i.source)), [project.items]);
+
   function updateItem(id: string, patch: Partial<WorkItem>) {
     setProject((p) => ({ ...p, items: p.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
   }
@@ -96,6 +131,25 @@ export default function Home() {
   }
   function addItem() {
     setProject((p) => ({ ...p, items: [...p.items, newItem()] }));
+  }
+
+  function connectSource(source: SourceId) {
+    const imported: WorkItem[] = (SAMPLE_ITEMS[source] ?? []).map((s) => ({
+      id: uid(),
+      title: s.title,
+      status: s.status,
+      source,
+      owner: s.owner ?? "",
+      dueDate: s.due ?? "",
+      note: s.note ?? "",
+    }));
+    setProject((p) => ({ ...p, items: [...p.items, ...imported] }));
+    setReports(null);
+  }
+
+  function disconnectSource(source: SourceId) {
+    setProject((p) => ({ ...p, items: p.items.filter((i) => i.source !== source) }));
+    setReports(null);
   }
 
   function generate() {
@@ -140,15 +194,39 @@ export default function Home() {
         <p>Pull work from Jira, Azure DevOps, Monday.com &amp; more into one clear, audience-ready status report — with risks flagged automatically.</p>
       </header>
 
-      {/* Connected-sources strip */}
-      <div className="sources-strip">
-        <span className="lead">Pulling from</span>
-        {sourcesInUse.length === 0 && <span className="hint" style={{ margin: 0 }}>add items to see connected tools</span>}
-        {sourcesInUse.map((s) => (
-          <span key={s.label} className="src-badge" style={{ color: SOURCE_META[s.id].color }}>
-            {s.label}<span className="src-count">×{s.count}</span>
-          </span>
-        ))}
+      {/* Connected sources + quick connectors */}
+      <div className="sources-card">
+        <div className="sources-row">
+          <span className="lead">Pulling from</span>
+          {sourcesInUse.length === 0 && <span className="hint" style={{ margin: 0 }}>nothing yet — connect a tool below</span>}
+          {sourcesInUse.map((s) => (
+            <span key={s.label} className="src-badge" style={{ color: SOURCE_META[s.id].color }}>
+              {s.label}<span className="src-count">×{s.count}</span>
+            </span>
+          ))}
+        </div>
+        <div className="connect-row">
+          {CONNECTABLE.map((src) => {
+            const on = connectedSet.has(src);
+            const meta = SOURCE_META[src];
+            return (
+              <button
+                key={src}
+                className={`connect-btn ${on ? "on" : ""}`}
+                style={on ? { borderColor: meta.color, background: `${meta.color}22` } : undefined}
+                aria-pressed={on}
+                title={on ? `Disconnect ${meta.label}` : `Connect ${meta.label} (imports sample items)`}
+                onClick={() => (on ? disconnectSource(src) : connectSource(src))}
+              >
+                <span className="dot" style={{ background: meta.color, boxShadow: `0 0 0 3px ${meta.color}33` }} />
+                {on ? `✓ ${meta.label}` : `Connect ${meta.label}`}
+              </button>
+            );
+          })}
+        </div>
+        <div className="hint" style={{ marginTop: 10 }}>
+          Demo connectors — clicking imports sample work items so you can see cross-tool aggregation live. Real OAuth lands in roadmap M2.
+        </div>
       </div>
 
       <div className="grid">
