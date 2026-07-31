@@ -56,6 +56,12 @@ Six milestones, ~7–9 weeks to a design-partner-ready MVP. Sequencing follows t
 - **Agents:** `database-agent` (schema/RLS/migrations), `testing-agent` (isolation tests), `security-review-agent` (RLS review — mandatory gate).
 - **Dependencies:** M0.
 - **Success criteria:** every tenant table has RLS + a passing isolation test; types generated; security-review PASS; migrations run clean in CI.
+- **Auth setup checklist (Supabase dashboard — project `my-statuscope-app`, ref `nihtdxrjymkjdskjrcsf`):** pairs with the magic-link auth scaffolding from M0.
+  - [ ] Confirm the **Email** provider + **Magic Link** are enabled — enabled by default on new projects; verify it wasn't turned off. (Authentication → Providers → Email: `/dashboard/project/nihtdxrjymkjdskjrcsf/auth/providers`)
+  - [ ] Set the **Site URL** to the production app URL (the Netlify site). (Authentication → URL Configuration: `/dashboard/project/nihtdxrjymkjdskjrcsf/auth/url-configuration`)
+  - [ ] Add the **Redirect URLs** allow-list on the same page: `http://localhost:3000/**` (dev), `https://<netlify-site>.netlify.app/**` (prod), plus any deploy-preview pattern. ⚠️ Any redirect target not on this list silently falls back to the Site URL.
+  - [ ] Put `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the `sb_publishable_…` key) into Netlify env vars — names are in `.env.example`; never commit values.
+  - [ ] Verify `emailRedirectTo` in the client `signInWithOtp` call matches an allow-listed redirect URL.
 
 ### M2 — Jira Ingest (the read side)
 - **Duration:** ~1.5–2 weeks
