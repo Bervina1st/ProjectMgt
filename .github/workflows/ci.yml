@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: typecheck + build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install (workspaces, from lockfile)
+        run: npm ci
+
+      - name: Typecheck all workspaces
+        run: npm run typecheck
+
+      - name: Build (Turborepo; also type-checks apps/web)
+        run: npm run build
+
+  # ---------------------------------------------------------------------------
+  # Steps added as later roadmap milestones land (see research/roadmap.md):
+  #   M1  → unit tests + RLS isolation tests (packages/db, testing-agent)
+  #   M2  → integration tests (webhook → normalize → store)
+  #   M1+ → `npm run lint` once an ESLint config is added (currently ignored
+  #         during builds via apps/web/next.config.mjs)
+  #   main→ apply Supabase migrations on merge
+  # ---------------------------------------------------------------------------
