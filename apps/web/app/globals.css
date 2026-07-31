@@ -336,6 +336,9 @@ footer.credit strong { color: var(--text); font-weight: 600; }
 .auth-alt { text-align: center; font-size: 14px; color: var(--muted); margin: 16px 0 0; }
 .auth-alt a { color: var(--accent); text-decoration: none; font-weight: 600; }
 .auth-note { text-align: center; font-size: 12px; color: var(--muted); margin: 14px 0 0; padding-top: 14px; border-top: 1px dashed var(--border); }
+.auth-error { color: var(--red); font-size: 13.5px; margin: 12px 0 0; }
+.nav-user { font-size: 13px; color: var(--muted); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 520px) { .nav-user { display: none; } }
 
 /* ---- testimonials ---- */
 .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
