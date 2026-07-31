@@ -1,7 +1,7 @@
 import type { Project, WorkItem } from "./schema";
-import type { Audience, RiskFlag } from "./types";
+import type { Audience, RiskFlag, Severity } from "./types";
 import { distinctSourceLabels, SOURCE_META } from "./types";
-import { Counts, countByStatus, deriveOverall, detectRisks, OVERALL_META } from "./risk";
+import { Counts, countByStatus, daysUntil, deriveOverall, detectRisks, OVERALL_META } from "./risk";
 
 function itemsByStatus(items: WorkItem[], status: WorkItem["status"]): WorkItem[] {
   return items.filter((i) => i.status === status);
@@ -35,6 +35,69 @@ function riskLine(r: RiskFlag, items: WorkItem[]): string {
   const owner = items.find((i) => i.id === r.itemId)?.owner?.trim();
   const ownerTxt = owner ? ` _(owner ${owner})_` : "";
   return `- ${mark} **${r.itemTitle}** \`${srcLabel(r.source)}\` — ${r.reason}${ownerTxt}`;
+}
+
+/** Compact phrase for a single risk, for the owner-grouped chase list. */
+function shortRisk(r: RiskFlag, dueDate?: string): string {
+  const d = daysUntil(dueDate);
+  switch (r.ruleId) {
+    case "blocked":
+      return "blocked";
+    case "overdue":
+      return d !== null ? `${Math.abs(d)}d overdue` : "overdue";
+    case "due_soon":
+      return d !== null ? `due in ${d}d` : "due soon";
+    case "not_started_soon":
+      return "not started";
+    default:
+      return "at risk";
+  }
+}
+
+function distinctPhrases(flags: RiskFlag[], dueDate?: string): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const f of flags) {
+    const p = shortRisk(f, dueDate);
+    if (!seen.has(p)) {
+      seen.add(p);
+      out.push(p);
+    }
+  }
+  return out.join("; ");
+}
+
+type OwnerGroup = { owner: string; items: Array<{ item: WorkItem; flags: RiskFlag[]; severity: Severity }> };
+
+/** Group at-risk items by owner, most-critical owners first, "Unassigned" last. */
+function ownersAtRisk(project: Project, risks: RiskFlag[]): OwnerGroup[] {
+  const flagsByItem = new Map<string, RiskFlag[]>();
+  for (const r of risks) {
+    const arr = flagsByItem.get(r.itemId) ?? [];
+    arr.push(r);
+    flagsByItem.set(r.itemId, arr);
+  }
+
+  const byOwner = new Map<string, OwnerGroup["items"]>();
+  for (const [itemId, flags] of flagsByItem) {
+    const item = project.items.find((i) => i.id === itemId);
+    if (!item) continue;
+    const owner = item.owner?.trim() || "Unassigned";
+    const severity: Severity = flags.some((f) => f.severity === "high") ? "high" : "medium";
+    const arr = byOwner.get(owner) ?? [];
+    arr.push({ item, flags, severity });
+    byOwner.set(owner, arr);
+  }
+
+  const groups: OwnerGroup[] = Array.from(byOwner.entries()).map(([owner, items]) => ({ owner, items }));
+  groups.sort((a, b) => {
+    if ((a.owner === "Unassigned") !== (b.owner === "Unassigned")) return a.owner === "Unassigned" ? 1 : -1;
+    const aHigh = a.items.filter((x) => x.severity === "high").length;
+    const bHigh = b.items.filter((x) => x.severity === "high").length;
+    if (bHigh !== aHigh) return bHigh - aHigh;
+    return b.items.length - a.items.length;
+  });
+  return groups;
 }
 
 function sourcesLine(items: WorkItem[]): string[] {
@@ -165,6 +228,22 @@ function buildPmo(project: Project, counts: Counts, risks: RiskFlag[], meta: { l
   if (meds.length > 0) {
     lines.push(`## ⚠️ Watch list (${meds.length})`);
     for (const r of meds) lines.push(riskLine(r, project.items));
+    lines.push("");
+  }
+
+  // Accountability: who owns what's at risk, so PMs know exactly who to chase.
+  const ownerGroups = ownersAtRisk(project, risks);
+  if (ownerGroups.length > 0) {
+    lines.push(`## 🧭 Who owns what's at risk`);
+    for (const g of ownerGroups) {
+      const highCount = g.items.filter((x) => x.severity === "high").length;
+      const summary = `${g.items.length} at risk${highCount ? ` · 🔴 ${highCount} critical` : ""}`;
+      lines.push(`- **${g.owner}** — ${summary}`);
+      for (const { item, flags } of g.items) {
+        const mark = flags.some((f) => f.severity === "high") ? "🔴" : "🟡";
+        lines.push(`  - ${mark} **${titleOf(item)}** \`${srcLabel(item.source)}\` — ${distinctPhrases(flags, item.dueDate)}`);
+      }
+    }
     lines.push("");
   }
 
