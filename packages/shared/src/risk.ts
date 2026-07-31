@@ -27,6 +27,7 @@ export function detectRisks(items: WorkItem[]): RiskFlag[] {
       flags.push({
         itemId: item.id,
         itemTitle: title,
+        source: item.source,
         ruleId: "blocked",
         severity: "high",
         reason: `Marked blocked${item.owner ? ` — owner ${item.owner}` : ""}.`,
@@ -37,6 +38,7 @@ export function detectRisks(items: WorkItem[]): RiskFlag[] {
       flags.push({
         itemId: item.id,
         itemTitle: title,
+        source: item.source,
         ruleId: "overdue",
         severity: "high",
         reason: `${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"} overdue (due ${item.dueDate}) and not complete.`,
@@ -47,6 +49,7 @@ export function detectRisks(items: WorkItem[]): RiskFlag[] {
       flags.push({
         itemId: item.id,
         itemTitle: title,
+        source: item.source,
         ruleId: "due_soon",
         severity: "medium",
         reason: `Due in ${d} day${d === 1 ? "" : "s"} and not complete.`,
@@ -57,6 +60,7 @@ export function detectRisks(items: WorkItem[]): RiskFlag[] {
       flags.push({
         itemId: item.id,
         itemTitle: title,
+        source: item.source,
         ruleId: "not_started_soon",
         severity: "medium",
         reason: `Not started with due date in ${d} day${d === 1 ? "" : "s"}.`,

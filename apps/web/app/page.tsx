@@ -6,37 +6,41 @@ import {
   countByStatus,
   deriveOverall,
   detectRisks,
+  distinctSourceLabels,
   generateReports,
   ItemStatus,
   OVERALL_META,
   Project,
   projectSchema,
+  SOURCE_META,
+  SourceId,
   STATUS_LABELS,
   WorkItem,
 } from "@pmstatus/shared";
 
-const STORAGE_KEY = "pmstatus:web:v1";
+const STORAGE_KEY = "pmstatus:web:v2";
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 9);
 }
 
 function newItem(): WorkItem {
-  return { id: uid(), title: "", status: "in_progress", owner: "", dueDate: "", note: "" };
+  return { id: uid(), title: "", status: "in_progress", source: "manual", owner: "", dueDate: "", note: "" };
 }
 
 const SEED: Project = {
   name: "Payments Revamp",
   periodLabel: "Week of Jul 27, 2026",
   items: [
-    { id: uid(), title: "Checkout API v2", status: "in_progress", owner: "Dana", dueDate: "2026-08-03", note: "" },
-    { id: uid(), title: "Migrate legacy tokens", status: "blocked", owner: "Priya", dueDate: "2026-07-29", note: "waiting on security review" },
-    { id: uid(), title: "Fraud rules refresh", status: "done", owner: "Sam", dueDate: "2026-07-25", note: "" },
-    { id: uid(), title: "Load testing", status: "not_started", owner: "Lee", dueDate: "2026-08-01", note: "" },
+    { id: uid(), title: "Checkout API v2", status: "in_progress", source: "jira", owner: "Dana", dueDate: "2026-08-03", note: "" },
+    { id: uid(), title: "Migrate legacy tokens", status: "blocked", source: "azure_devops", owner: "Priya", dueDate: "2026-07-29", note: "waiting on security review" },
+    { id: uid(), title: "Fraud rules refresh", status: "done", source: "monday", owner: "Sam", dueDate: "2026-07-25", note: "" },
+    { id: uid(), title: "Load testing", status: "not_started", source: "github", owner: "Lee", dueDate: "2026-08-01", note: "" },
   ],
 };
 
 const STATUS_OPTIONS: ItemStatus[] = ["not_started", "in_progress", "blocked", "done"];
+const SOURCE_OPTIONS: SourceId[] = ["jira", "azure_devops", "monday", "github", "linear", "asana", "trello", "manual"];
 
 export default function Home() {
   const [project, setProject] = useState<Project>(SEED);
@@ -69,6 +73,20 @@ export default function Home() {
   const risks = useMemo(() => detectRisks(project.items), [project.items]);
   const overall = useMemo(() => deriveOverall(counts, risks), [counts, risks]);
   const overallMeta = OVERALL_META[overall];
+  const pct = counts.total > 0 ? Math.round((counts.done / counts.total) * 100) : 0;
+
+  // Which tools feed this report, with counts — the "connected sources" strip.
+  const sourcesInUse = useMemo(() => {
+    const order = distinctSourceLabels(project.items.map((i) => i.source));
+    const byLabel = new Map<string, { id: SourceId; count: number }>();
+    for (const i of project.items) {
+      const label = SOURCE_META[i.source].label;
+      const cur = byLabel.get(label);
+      if (cur) cur.count += 1;
+      else byLabel.set(label, { id: i.source, count: 1 });
+    }
+    return order.map((label) => ({ label, ...byLabel.get(label)! }));
+  }, [project.items]);
 
   function updateItem(id: string, patch: Partial<WorkItem>) {
     setProject((p) => ({ ...p, items: p.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
@@ -119,8 +137,19 @@ export default function Home() {
     <div className="wrap">
       <header className="app">
         <h1>Status Report Studio</h1>
-        <p>Enter your project&apos;s work items → get an audience-ready status report with the risks already flagged. Edit, then copy or download.</p>
+        <p>Pull work from Jira, Azure DevOps, Monday.com &amp; more into one clear, audience-ready status report — with risks flagged automatically.</p>
       </header>
+
+      {/* Connected-sources strip */}
+      <div className="sources-strip">
+        <span className="lead">Pulling from</span>
+        {sourcesInUse.length === 0 && <span className="hint" style={{ margin: 0 }}>add items to see connected tools</span>}
+        {sourcesInUse.map((s) => (
+          <span key={s.label} className="src-badge" style={{ color: SOURCE_META[s.id].color }}>
+            {s.label}<span className="src-count">×{s.count}</span>
+          </span>
+        ))}
+      </div>
 
       <div className="grid">
         {/* ---------- LEFT: inputs ---------- */}
@@ -135,7 +164,13 @@ export default function Home() {
             onChange={(e) => setProject({ ...project, periodLabel: e.target.value })} />
 
           <div className="spacer" />
-          <div className="badge">{overallMeta.badge} Overall: {overallMeta.label}</div>
+          <div className="overall-row">
+            <div className="badge">{overallMeta.badge} Overall: {overallMeta.label}</div>
+            <div className="pct">{pct}% complete</div>
+          </div>
+          <div className="progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+            <span style={{ width: `${pct}%` }} />
+          </div>
           <div className="counts">
             <span className="chip">{counts.done} done</span>
             <span className="chip">{counts.in_progress} in progress</span>
@@ -147,11 +182,24 @@ export default function Home() {
           <h2 style={{ marginTop: 22 }}>Work items</h2>
           {project.items.map((item) => (
             <div className="item" key={item.id}>
-              <div className="item-top">
+              <div className="item-head">
+                <span className="src-badge" style={{ color: SOURCE_META[item.source].color }}>
+                  {SOURCE_META[item.source].label}
+                </span>
+                <span className={`status-pill s-${item.status}`}>{STATUS_LABELS[item.status]}</span>
+                <button className="danger" aria-label="Remove item" onClick={() => removeItem(item.id)}>Remove</button>
+              </div>
+
+              <label>Title</label>
+              <input type="text" value={item.title} placeholder="What is it?"
+                onChange={(e) => updateItem(item.id, { title: e.target.value })} />
+
+              <div className="meta3">
                 <div>
-                  <label>Title</label>
-                  <input type="text" value={item.title} placeholder="What is it?"
-                    onChange={(e) => updateItem(item.id, { title: e.target.value })} />
+                  <label>Source</label>
+                  <select value={item.source} onChange={(e) => updateItem(item.id, { source: e.target.value as SourceId })}>
+                    {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{SOURCE_META[s].label}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label>Status</label>
@@ -159,23 +207,25 @@ export default function Home() {
                     {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
                   </select>
                 </div>
-                <button className="danger" aria-label="Remove item" onClick={() => removeItem(item.id)}>Remove</button>
-              </div>
-              <div className="meta">
                 <div>
                   <label>Owner</label>
                   <input type="text" value={item.owner ?? ""} placeholder="Optional"
                     onChange={(e) => updateItem(item.id, { owner: e.target.value })} />
                 </div>
+              </div>
+
+              <div className="meta2">
                 <div>
                   <label>Due date</label>
                   <input type="date" value={item.dueDate ?? ""}
                     onChange={(e) => updateItem(item.id, { dueDate: e.target.value })} />
                 </div>
+                <div>
+                  <label>Note (optional)</label>
+                  <input type="text" value={item.note ?? ""} placeholder="e.g. waiting on security review"
+                    onChange={(e) => updateItem(item.id, { note: e.target.value })} />
+                </div>
               </div>
-              <label>Note (optional)</label>
-              <input type="text" value={item.note ?? ""} placeholder="e.g. waiting on security review"
-                onChange={(e) => updateItem(item.id, { note: e.target.value })} />
             </div>
           ))}
 
@@ -191,19 +241,20 @@ export default function Home() {
 
           {risks.length > 0 && (
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 4 }}>Detected risks (with reasons):</div>
+              <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 4 }}>Detected risks (with source &amp; reason):</div>
               {risks.map((r, idx) => (
                 <div className="riskline" key={idx}>
                   <span className={r.severity === "high" ? "sev-high" : "sev-medium"}>
                     {r.severity === "high" ? "🔴" : "🟡"} {r.itemTitle}
                   </span>{" "}
+                  <span className="src-badge sm" style={{ color: SOURCE_META[r.source].color }}>{SOURCE_META[r.source].label}</span>{" "}
                   — {r.reason}
                 </div>
               ))}
             </div>
           )}
 
-          <button className="primary" onClick={generate}>Generate report</button>
+          <button className="primary" onClick={generate}>✨ Generate report</button>
 
           {reports && (
             <>

@@ -9,10 +9,25 @@ import { z } from "zod";
 export const itemStatusSchema = z.enum(["done", "in_progress", "blocked", "not_started"]);
 export type ItemStatus = z.infer<typeof itemStatusSchema>;
 
+/** Where a work item's data comes from — the tools the product aggregates. */
+export const sourceIdSchema = z.enum([
+  "jira",
+  "azure_devops",
+  "monday",
+  "github",
+  "linear",
+  "asana",
+  "trello",
+  "manual",
+]);
+export type SourceId = z.infer<typeof sourceIdSchema>;
+
 export const workItemSchema = z.object({
   id: z.string(),
   title: z.string(),
   status: itemStatusSchema,
+  // Defaulted so drafts saved before this field existed still load cleanly.
+  source: sourceIdSchema.default("manual"),
   owner: z.string().optional(),
   dueDate: z.string().optional(), // ISO yyyy-mm-dd
   note: z.string().optional(),

@@ -1,21 +1,33 @@
 import type { Project, WorkItem } from "./schema";
 import type { Audience, RiskFlag } from "./types";
+import { distinctSourceLabels, SOURCE_META } from "./types";
 import { Counts, countByStatus, deriveOverall, detectRisks, OVERALL_META } from "./risk";
 
 function itemsByStatus(items: WorkItem[], status: WorkItem["status"]): WorkItem[] {
   return items.filter((i) => i.status === status);
 }
 
+function srcLabel(id: WorkItem["source"]): string {
+  return SOURCE_META[id]?.label ?? "Manual";
+}
+
 function bullet(i: WorkItem): string {
   const bits = [i.title.trim() || "(untitled item)"];
   if (i.owner) bits.push(`_${i.owner}_`);
   if (i.dueDate) bits.push(`due ${i.dueDate}`);
-  const line = bits.join(" · ");
-  return i.note ? `${line} — ${i.note.trim()}` : line;
+  let line = bits.join(" · ");
+  if (i.note) line += ` — ${i.note.trim()}`;
+  // Source shown as an inline-code tag so it reads clearly in Markdown.
+  return `${line}  \`${srcLabel(i.source)}\``;
 }
 
 function cap(s: string): string {
   return s.length ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+function sourcesLine(items: WorkItem[]): string[] {
+  const labels = distinctSourceLabels(items.map((i) => i.source));
+  return labels.length ? [labels.join(" · ")] : [];
 }
 
 /**
@@ -38,6 +50,7 @@ function buildExecutive(project: Project, counts: Counts, risks: RiskFlag[], met
   const name = project.name.trim() || "Project";
   const period = project.periodLabel.trim();
   const highs = risks.filter((r) => r.severity === "high");
+  const sources = sourcesLine(project.items);
 
   const lines: string[] = [];
   lines.push(`**${name}${period ? ` — ${period}` : ""}**`);
@@ -48,12 +61,17 @@ function buildExecutive(project: Project, counts: Counts, risks: RiskFlag[], met
   if (counts.blocked > 0) summary += ` ${counts.blocked} blocked.`;
   lines.push(summary);
 
+  if (sources.length) {
+    const list = distinctSourceLabels(project.items.map((i) => i.source));
+    lines.push(`_Aggregated from ${list.length} source${list.length === 1 ? "" : "s"}: ${sources[0]}._`);
+  }
+
   if (highs.length > 0) {
     lines.push("");
     lines.push(
       `**Needs attention:** ${highs
         .slice(0, 2)
-        .map((r) => `${r.itemTitle} (${r.reason.toLowerCase()})`)
+        .map((r) => `${r.itemTitle} — ${srcLabel(r.source)} (${r.reason.toLowerCase()})`)
         .join("; ")}${highs.length > 2 ? `; +${highs.length - 2} more` : ""}`,
     );
   }
@@ -64,6 +82,7 @@ function buildExecutive(project: Project, counts: Counts, risks: RiskFlag[], met
 function buildEngineering(project: Project, counts: Counts, risks: RiskFlag[], meta: { label: string; badge: string }): string {
   const name = project.name.trim() || "Project";
   const period = project.periodLabel.trim();
+  const sources = sourcesLine(project.items);
   const lines: string[] = [];
 
   lines.push(`# ${name} — Status Report`);
@@ -72,13 +91,14 @@ function buildEngineering(project: Project, counts: Counts, risks: RiskFlag[], m
   lines.push(
     `**Overall:** ${meta.badge} ${meta.label}  ·  ${counts.done}/${counts.total} done · ${counts.in_progress} in progress · ${counts.blocked} blocked · ${counts.not_started} not started`,
   );
+  if (sources.length) lines.push(`**Sources:** ${sources[0]}`);
   lines.push("");
 
   if (risks.length > 0) {
     lines.push(`## ⚠️ At risk (${risks.length})`);
     for (const r of risks) {
       const mark = r.severity === "high" ? "🔴" : "🟡";
-      lines.push(`- ${mark} **${r.itemTitle}** — ${r.reason}`);
+      lines.push(`- ${mark} **${r.itemTitle}** \`${srcLabel(r.source)}\` — ${r.reason}`);
     }
     lines.push("");
   } else {
