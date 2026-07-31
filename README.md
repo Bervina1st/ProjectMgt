@@ -47,3 +47,6 @@ package directory, point it at `apps/web`.
   Turborepo structure is identical either way).
 - The frontend is intentionally **client-side only**: no tRPC/Supabase/LLM yet. Those attach at
   roadmap M1–M3 without restructuring — the shared Zod schemas are already the contract.
+
+## Credits
+Designed & developed by **Christina Bervin**.

@@ -231,6 +231,10 @@ export default function Home() {
           {!reports && <div className="hint">Fill in your items on the left, then hit &ldquo;Generate report.&rdquo;</div>}
         </section>
       </div>
+
+      <footer className="credit">
+        Designed &amp; developed by <strong>Christina Bervin</strong>
+      </footer>
     </div>
   );
 }

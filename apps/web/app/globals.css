@@ -111,3 +111,13 @@ textarea.report { min-height: 420px; line-height: 1.5; font-family: ui-monospace
 .sev-high { color: var(--red); }
 .sev-medium { color: var(--yellow); }
 .copied { color: var(--green); font-size: 12px; margin-left: 6px; }
+
+footer.credit {
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+footer.credit strong { color: var(--text); font-weight: 600; }
