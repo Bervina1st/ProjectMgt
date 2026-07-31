@@ -1,0 +1,13 @@
+# Netlify config for the Turborepo monorepo.
+# Install happens at the repo ROOT (so npm workspaces resolve @pmstatus/shared),
+# the web app is built via Turborepo, and we publish its .next output.
+[build]
+  command = "npm run build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Official Next.js runtime (Netlify auto-installs it; declared for clarity).
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

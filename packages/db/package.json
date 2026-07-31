@@ -1,0 +1,9 @@
+{
+  "name": "@pmstatus/db",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "echo \"(db) deferred — see README\"",
+    "typecheck": "echo \"(db) deferred — see README\""
+  }
+}

@@ -1,0 +1,5 @@
+# Normalize line endings across platforms; deploy target (Netlify) is Linux.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
