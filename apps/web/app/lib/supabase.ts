@@ -18,8 +18,11 @@ export function getSupabase(): SupabaseClient | null {
 
   cached = createClient(url, key, {
     auth: {
-      flowType: "pkce",
-      detectSessionInUrl: false, // we exchange the code explicitly in /auth/callback
+      // Implicit flow: the session comes back in the link's URL hash, so magic
+      // links work even when opened in a different browser (no stored PKCE
+      // verifier required). detectSessionInUrl lets the client pick it up.
+      flowType: "implicit",
+      detectSessionInUrl: true,
       persistSession: true,
       autoRefreshToken: true,
     },

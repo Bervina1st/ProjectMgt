@@ -18,14 +18,45 @@ export default function AuthCallback() {
       setState("error");
       return;
     }
-    supabase.auth.exchangeCodeForSession(window.location.href).then(({ error }) => {
-      if (error) {
-        setError(error.message);
-        setState("error");
-      } else {
+
+    // Provider errors (expired/invalid link) come back in the URL hash.
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const errDesc = hash.get("error_description") || hash.get("error");
+    if (errDesc) {
+      setError(errDesc.replace(/\+/g, " "));
+      setState("error");
+      return;
+    }
+
+    let settled = false;
+    const go = () => {
+      if (!settled) {
+        settled = true;
         router.replace("/studio");
       }
+    };
+
+    // With detectSessionInUrl, the client parses the hash tokens on init and
+    // fires SIGNED_IN. Also check immediately in case it already resolved.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) go();
     });
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) go();
+    });
+
+    const timer = setTimeout(async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session && !settled) {
+        setError("Couldn't establish a session from this link — please request a fresh one.");
+        setState("error");
+      }
+    }, 3000);
+
+    return () => {
+      sub.subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, [router]);
 
   return (
@@ -42,7 +73,7 @@ export default function AuthCallback() {
             <>
               <h1>Sign-in link didn&rsquo;t work</h1>
               <p className="auth-error">{error}</p>
-              <p className="auth-note">Magic links must be opened in the same browser you requested them from, and each link can only be used once. Try requesting a fresh one.</p>
+              <p className="auth-note">Each magic link can only be used once and expires after a while. Request a fresh one and click it soon after it arrives.</p>
               <p className="auth-alt"><Link href="/signin">Back to sign in</Link></p>
             </>
           )}
