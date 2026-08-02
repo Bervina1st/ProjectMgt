@@ -14,6 +14,22 @@
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px rgba(16, 24, 40, 0.06);
 }
 
+/* ---- dark mode (toggled via data-theme on <html>) ---- */
+:root[data-theme="dark"] {
+  --bg: #0e1326;
+  --panel: #171f38;
+  --panel-2: #212c4c;
+  --border: #2d3a5c;
+  --text: #e9edf8;
+  --muted: #9aa6c6;
+  --accent: #6d87ff;
+  --accent-2: #9a82ff;
+  --green: #34d399;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -364,3 +380,15 @@ footer.credit strong { color: var(--text); font-weight: 600; }
 .studio-intro { margin: 26px 0 22px; }
 .studio-intro h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.02em; }
 .studio-intro p { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* ---- theme toggle button ---- */
+.theme-toggle { padding: 8px 11px; font-size: 15px; line-height: 1; }
+
+/* ---- dark-mode overrides for surfaces that hardcode light values ---- */
+:root[data-theme="dark"] body {
+  background: radial-gradient(1100px 560px at 15% -10%, #1a2547 0%, var(--bg) 55%);
+}
+:root[data-theme="dark"] .site-nav { background: rgba(14, 19, 38, 0.82); }
+:root[data-theme="dark"] .btn-ghost { background: var(--panel); color: var(--text); border-color: var(--border); }
+:root[data-theme="dark"] .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+:root[data-theme="dark"] .section.alt { background: linear-gradient(180deg, #131b33, #0e1326); }

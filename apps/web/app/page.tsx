@@ -185,8 +185,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---------- TESTIMONIALS ---------- */}
-      <section className="section alt">
+      {/* ---------- TESTIMONIALS / REVIEWS ---------- */}
+      <section id="reviews" className="section alt">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Loved by delivery teams</span>

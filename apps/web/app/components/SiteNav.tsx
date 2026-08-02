@@ -5,10 +5,17 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { getSupabase } from "../lib/supabase";
 
+type Theme = "light" | "dark";
+
 export default function SiteNav() {
   const [email, setEmail] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
+    // theme was set on <html> by the inline script in layout; reflect it here
+    const current = (document.documentElement.getAttribute("data-theme") as Theme) || "light";
+    setTheme(current);
+
     const supabase = getSupabase();
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user?.email ?? null));
@@ -17,6 +24,17 @@ export default function SiteNav() {
     );
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  function toggleTheme() {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("statuscope:theme", next);
+    } catch {
+      /* ignore */
+    }
+  }
 
   async function signOut() {
     await getSupabase()?.auth.signOut();
@@ -34,9 +52,19 @@ export default function SiteNav() {
           <a href="/#product">Product</a>
           <a href="/#connectors">Connectors</a>
           <a href="/#features">Features</a>
+          <a href="/#reviews">Reviews</a>
           <a href="/#pricing">Pricing</a>
+          <a href="/#faq">FAQ</a>
         </nav>
         <div className="nav-actions">
+          <button
+            className="btn btn-ghost theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
           {email ? (
             <>
               <span className="nav-user" title={email}>{email}</span>
